@@ -1,0 +1,16 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+.venv/
+venv/
+env/
+
+# OS / editor
+.Desktop.ini
+Thumbs.db
+*.swp
+
+# Optional: large trained model (remove this line if you want judges to run without training)
+# classifier.pkl

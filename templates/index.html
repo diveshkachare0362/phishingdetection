@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Security Dashboard | Phishing Detection</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="min-h-screen bg-slate-950 text-slate-100">
+    <div class="mx-auto max-w-5xl px-6 py-10">
+        <header class="mb-10">
+            <h1 class="text-4xl font-bold tracking-tight">Security Dashboard</h1>
+            <p class="mt-2 text-slate-400">Gradient Boosting powered URL phishing analysis.</p>
+        </header>
+
+        <section class="rounded-2xl border border-slate-800 bg-slate-900 p-6">
+            <label for="urlInput" class="mb-2 block text-sm font-medium text-slate-300">Target URL</label>
+            <div class="flex flex-col gap-3 md:flex-row">
+                <input id="urlInput" type="text" placeholder="https://example.com/login"
+                    class="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-slate-100 outline-none focus:border-cyan-400" />
+                <button id="scanBtn" onclick="analyzeURL()"
+                    class="rounded-xl bg-cyan-600 px-5 py-3 font-semibold text-white transition hover:bg-cyan-500">
+                    Analyze
+                </button>
+            </div>
+            <div id="loading" class="mt-4 hidden items-center gap-3 text-cyan-300">
+                <div class="h-4 w-4 animate-spin rounded-full border-2 border-cyan-300 border-t-transparent"></div>
+                <span>Scanning...</span>
+            </div>
+        </section>
+
+        <section id="resultCard" class="mt-8 hidden rounded-2xl border border-slate-800 bg-slate-900 p-6">
+            <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                <div>
+                    <p class="text-sm uppercase tracking-wider text-slate-400">Verdict</p>
+                    <h2 id="verdictText" class="mt-1 text-3xl font-bold">-</h2>
+                </div>
+                <div class="w-full max-w-sm">
+                    <div class="mb-2 flex justify-between text-sm text-slate-400">
+                        <span>Malicious Probability</span>
+                        <span id="probabilityText">0.00</span>
+                    </div>
+                    <div class="h-3 w-full overflow-hidden rounded-full bg-slate-800">
+                        <div id="probabilityBar" class="h-full w-0 rounded-full bg-emerald-400 transition-all duration-500"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-8 border-t border-slate-800 pt-6">
+                <h3 class="text-sm uppercase tracking-wider text-slate-400">Technical Details</h3>
+                <ul id="topFeaturesList" class="mt-3 space-y-2 text-slate-200"></ul>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        function verdictStyles(verdict) {
+            if (verdict === "Malicious") {
+                return { text: "text-red-400", bar: "bg-red-500" };
+            }
+            if (verdict === "Suspicious") {
+                return { text: "text-amber-400", bar: "bg-amber-500" };
+            }
+            return { text: "text-emerald-400", bar: "bg-emerald-500" };
+        }
+
+        async function analyzeURL() {
+            const urlInput = document.getElementById("urlInput");
+            const scanBtn = document.getElementById("scanBtn");
+            const loading = document.getElementById("loading");
+            const resultCard = document.getElementById("resultCard");
+            const verdictText = document.getElementById("verdictText");
+            const probabilityText = document.getElementById("probabilityText");
+            const probabilityBar = document.getElementById("probabilityBar");
+            const topFeaturesList = document.getElementById("topFeaturesList");
+
+            const targetUrl = urlInput.value.trim();
+            if (!targetUrl) {
+                alert("Please enter a URL.");
+                return;
+            }
+
+            scanBtn.disabled = true;
+            loading.classList.remove("hidden");
+            loading.classList.add("flex");
+
+            try {
+                const response = await fetch("/predict", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ url: targetUrl })
+                });
+                const data = await response.json();
+                if (!response.ok) {
+                    throw new Error(data.error || "Prediction failed.");
+                }
+
+                resultCard.classList.remove("hidden");
+                const styles = verdictStyles(data.verdict);
+                verdictText.className = `mt-1 text-3xl font-bold ${styles.text}`;
+                verdictText.textContent = data.verdict;
+
+                const pct = Math.max(0, Math.min(100, data.probability * 100));
+                probabilityText.textContent = data.probability.toFixed(4);
+                probabilityBar.className = `h-full rounded-full transition-all duration-500 ${styles.bar}`;
+                probabilityBar.style.width = `${pct}%`;
+
+                topFeaturesList.innerHTML = "";
+                (data.top_features || []).forEach((item) => {
+                    const li = document.createElement("li");
+                    li.className = "rounded-lg border border-slate-800 bg-slate-950 px-3 py-2";
+                    li.textContent = `${item.name}: value=${item.value.toFixed(4)} | influence=${item.influence.toFixed(4)}`;
+                    topFeaturesList.appendChild(li);
+                });
+            } catch (error) {
+                alert(error.message || "Unable to analyze this URL right now.");
+            } finally {
+                scanBtn.disabled = false;
+                loading.classList.add("hidden");
+                loading.classList.remove("flex");
+            }
+        }
+    </script>
+</body>
+</html>
