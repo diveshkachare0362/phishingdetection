@@ -9,7 +9,7 @@ End-to-end **machine learning** pipeline that classifies URLs as **Safe**, **Sus
 1. **Train** a `GradientBoostingClassifier` on a real phishing dataset (URL + label).
 2. **Extract** URL-based features (length, symbols, HTTPS, punycode, subdomain depth, etc.).
 3. **Serve** predictions via `POST /predict` with verdict, probability, and top contributing features.
-4. **Display** results in a dark-themed web UI with loading state and probability bar.
+4. **Display** results in a dark-themed web UI: fraud **%** gauge, summary + reasons, optional **voice** alert, malicious **block overlay**, and **demo reminders** (server log + clipboard + `mailto:` / `sms:` — no API keys).
 
 ---
 
@@ -56,7 +56,9 @@ This loads data (local `malicious_phish.csv` if present, otherwise a public CSV 
 python app.py
 ```
 
-Open **http://127.0.0.1:5000** in a browser. Enter a URL and click **Analyze**.
+Open **http://127.0.0.1:5000** — you are redirected to **Register** / **Login**. You can **register** your own account (stored in local **`users.db`**), or sign in with the demo user created on startup: **`username@gmail.com`** / **`Admin@123`**. Then use the **Security Dashboard**.
+
+**Demo: “Send reminder”** — After a scan, click **Send reminder**. The server uses your **registered** email/phone, **prints** the alert in the terminal, **copies** text to the clipboard, and tries **mailto:** / **sms:**. No Twilio/SMTP required for the demo.
 
 ### 3. API (optional)
 

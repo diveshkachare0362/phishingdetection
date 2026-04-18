@@ -28,8 +28,40 @@ def _normalize_url(url: str) -> str:
     if not url:
         return ""
     if "://" not in url:
-        return f"http://{url}"
+        # Default to https so legitimate sites aren't penalised for omitting scheme
+        return f"https://{url}"
     return url
+
+
+def validate_url(url: str):
+    raw = str(url or "").strip()
+    if not raw:
+        return False, "No URL provided."
+    if raw.startswith("http:/") and not raw.startswith("http://"):
+        return False, "Only one slash after http: instead of //."
+    if raw.startswith("https:/") and not raw.startswith("https://"):
+        return False, "Only one slash after https: instead of //."
+    if not raw.startswith(("http://", "https://")):
+        return False, "No http:// or https:// at the start."
+    if " " in raw:
+        return False, "Spaces are not allowed (should be encoded as %20)."
+    if any(ch in raw for ch in "<>\"{}|\\^`"):
+        return False, "Invalid characters are not allowed in URLs."
+
+    parsed = urlparse(raw)
+    if not parsed.netloc:
+        return False, "No domain name provided."
+
+    host = parsed.netloc
+    if ":" in host:
+        port = host.split(":", 1)[1].split("/")[0]
+        if port and not port.isdigit():
+            return False, "Port must be a number (e.g., :443)."
+
+    if raw.endswith("&") or raw.endswith("?"):
+        return False, "Ends with dangling & (incomplete parameter)."
+
+    return True, ""
 
 
 def extract_features(url: str):

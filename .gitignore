@@ -14,3 +14,6 @@ Thumbs.db
 
 # Optional: large trained model (remove this line if you want judges to run without training)
 # classifier.pkl
+
+# Local user database (registration data)
+users.db
