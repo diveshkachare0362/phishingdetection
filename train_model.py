@@ -10,13 +10,14 @@ from sklearn.model_selection import train_test_split
 
 from utils import FEATURE_COLUMNS, extract_features
 
+#Dataset Sources - KAGGLE
 DATA_SOURCES = [
     "malicious_phish.csv",
     "https://raw.githubusercontent.com/mango-cat/ECS171-Project/main/malicious_phish.csv",
     "https://archive.ics.uci.edu/ml/machine-learning-databases/00327/Training%20Dataset.arff",
 ]
 
-
+# Dataset Used for Trianig ML Model using Scikit-Learn
 def load_dataset():
     for source in DATA_SOURCES:
         try:
@@ -63,7 +64,7 @@ def prepare_training_frame(df):
     training_df = pd.concat([engineered[FEATURE_COLUMNS], working["label"]], axis=1)
     return training_df
 
-
+# Actual Trainig Function for ML model Using Sci-Kit learn
 def train():
     raw_df = load_dataset()
     train_df = prepare_training_frame(raw_df)
